@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"/>
+    <title>Exchange Rates Caculation</title>
+</head>
+<body style="font-size: 16px">
+
+    <div class="container">
+
+        <div class="page-header">
+            <h1>환율 계산</h1>
+        </div>
+        <div class="panel-body">
+            <form th:action="${'/'}" th:object="${exchange}" method="GET">
+                <div class="form-group">
+                    <label for="source">송금국가</label>
+                    <select id="source" name="source" class="form-control">
+                        <option th:value="USD" selected>미국(USD)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="receipt">수취국가</label>
+                    <select id="receipt" name="receipt" class="form-control" th:field="*{receipt}" th:onchange="exchangeRateApply()">
+                        <option th:value="KRW" th:text='${"한국(KRW)"}' th:selected="*{receipt} == KRW"></option>
+                        <option th:value="JPY" th:text='${"일본(JPN)"}' th:selected="*{receipt} == JPY"></option>
+                        <option th:value="PHP" th:text='${"필리핀(PHP)"}' th:selected="*{receipt} == PHP"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="exchangeRate">환율</label>
+                    <p id="exchangeRateView" style="font-size:20px;" th:if="*{exchangeRate}" th:text="*{#numbers.formatDecimal(exchangeRate,1,'COMMA',2,'POINT')} + ' ' + *{receipt}+'/'+ *{source}"></p>
+                    <p th:unless="*{exchangeRate}"></p>
+                    <small class="text-danger" th:if="${#fields.hasErrors('exchangeRate')}" th:errors="*{exchangeRate}"></small>
+                </div>
+                <input type="hidden" id="exchangeRate" name="exchangeRate" th:field="*{exchangeRate}" th:value="*{exchangeRate}">
+                <div class="form-group">
+                    <label for="amount">송금액 </label> (단위:USD)
+                    <input type="number" th:field="*{amount}" th:value="*{amount}" class="form-control" id="amount" name="amount" placeholder="송금액을 입력하세요">
+                    <small class="text-danger" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></small>
+                </div>
+
+                <button type="button" class="btn btn-primary submit">Submit</button>
+
+
+            </form>
+
+        </div>
+
+
+        <div class="panel-collapse">
+            <div class="row" th:if="${receiptAmount}">
+                <h3 th:if="${receiptAmount}" th:text="'수취금액은 '+${#numbers.formatDecimal(receiptAmount,1,'COMMA',2,'POINT')} + ' '+ ${exchange.receipt}+ ' 입니다.'"></h3>
+            </div>
+        </div>
+
+    </div>
+
+    <script th:src="@{/js/jquery.min.js}"></script>
+    <script th:src="@{/js/bootstrap.min.js}"></script>
+    <script th:inline="javascript">
+        $(function () {
+        })
+
+        var exchangeRate = [[${exchange.exchangeRate}]];
+
+        $('.submit').click(function () {
+
+            if(exchangeRate){
+                $('form').attr('action','/');
+                $('form').submit();
+            }else {
+                alert('환율 정보가 없어 송금이 불가능 합니다');
+            }
+        })
+
+        var exchangeRateApply = function () {
+
+            if(exchangeRate){
+                $('#amount').val('');
+                $('form').attr('action',[[@{'/exchangeRate'}]]);
+                $('form').submit();
+            }
+        }
+
+    </script>
+</body>
+</html>
